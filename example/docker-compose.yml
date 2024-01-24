@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  drone:
+    privileged: true
+    image: bilxio/drone:2.21.0
+    ports:
+      - 8080:8080
+    environment:
+      - DRONE_SERVER_PORT=${DRONE_SERVER_PORT}
+      - DRONE_SERVER_HOST=${DRONE_SERVER_HOST}${DRONE_SERVER_PORT} # Drone URL
+      - DRONE_SERVER_PROTO=${DRONE_SERVER_PROTO}                   # http 或者 https 連線設定
+      - DRONE_RPC_SECRET=${DRONE_RPC_SECRET:-secret}
+      - DRONE_GITLAB_SERVER=${DRONE_GITLAB_SERVER}
+      - DRONE_GITLAB_CLIENT_ID=${DRONE_GITLAB_CLIENT_ID}           # taken from your Gitlab oauth application
+      - DRONE_GITLAB_CLIENT_SECRET=${DRONE_GITLAB_CLIENT_SECRET}   # taken from your Gitlab oauth application
+      - DRONE_GITLAB_SKIP_VERIFY=true
+      - DRONE_GIT_ALWAYS_AUTH=false
+      - DRONE_LOGS_DEBUG=true                                      # 選擇是否開啟 debug 模式
+      - DRONE_CRON_DISABLED=true
+      # - DRONE_ADMIN=root
+      - DRONE_USER_CREATE=username:dronebot,admin:true
+    volumes:
+      - drone-data:/data
+    network_mode: bridge
+    networks:
+      - drone-network
+    restart: unless-stopped
+
+  runner:
+    privileged: true
+    image: drone/drone-runner-docker
+    environment:
+    - DRONE_RPC_HOST=drone${DRONE_SERVER_PORT}
+    - DRONE_RPC_PROTO=${DRONE_SERVER_PROTO} 
+    - DRONE_RPC_SECRET=${DRONE_RPC_SECRET:-secret}
+    - DRONE_TMATE_ENABLED=true
+    - DRONE_UI_USERNAME=root
+    - DRONE_UI_PASSWORD=root123
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - drone
+    networks:
+      - drone-network
+    network_mode: bridge
+    ports:
+      - 3030:3000
+    restart: unless-stopped
+
+volumes:
+  drone-data: {}
+
+networks:
+  drone-network:
+    driver: bridge
