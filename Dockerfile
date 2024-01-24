@@ -3,7 +3,7 @@ FROM golang:1.20.12-alpine3.18 AS Builder
 RUN sed -i 's/https:\/\/dl-cdn.alpinelinux.org/http:\/\/mirrors.tuna.tsinghua.edu.cn/' /etc/apk/repositories && \
     echo "Asia/Shanghai" > /etc/timezone
 
-ENV DRONE_VERSION 2.21.0
+ENV DRONE_VERSION 2.22.0
 ENV CGO_CFLAGS="-g -O2 -Wno-return-local-addr"
 
 # Build with online code
@@ -50,7 +50,7 @@ ENV DRONE_SERVER_PORT=:80
 ENV DRONE_SERVER_HOST=localhost
 ENV DRONE_DATADOG_ENABLED=true
 ENV DRONE_DATADOG_ENDPOINT=https://stats.drone.ci/api/v1/series
-ENV DRONE_VERSION 2.21.0
+ENV DRONE_VERSION 2.22.0
 
 COPY --from=Certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=Builder /src/gitness-${DRONE_VERSION}/drone-server /bin/drone-server
